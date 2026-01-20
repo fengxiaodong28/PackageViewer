@@ -14,7 +14,6 @@
 ## 系统要求
 
 - macOS 14.0 或更高版本
-- Apple Silicon (M1/M2/M3) 或 Intel Mac
 
 ## 安装
 
