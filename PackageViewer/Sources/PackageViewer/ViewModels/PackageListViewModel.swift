@@ -15,9 +15,17 @@ class PackageListViewModel: ObservableObject {
     @Published var isManagerInstalled: Bool = true
     @Published var hasLoadedOnce: Bool = false
     @Published var packageCount: Int = 0
+    @Published var updateAlert: UpdateAlert?
 
     private let service: PackageRepository
     let manager: PackageManager
+
+    struct UpdateAlert: Identifiable {
+        let id = UUID()
+        let packageName: String
+        let success: Bool
+        let error: String?
+    }
 
     init(manager: PackageManager) {
         self.manager = manager
@@ -98,6 +106,89 @@ class PackageListViewModel: ObservableObject {
         hasLoadedOnce = false
         Task {
             await loadPackages()
+        }
+    }
+
+    func refresh() {
+        // Reset all package states
+        for package in packages {
+            package.latestVersion = nil
+            package.isCheckingUpdate = false
+            package.isUpdating = false
+        }
+        // Reload packages
+        hasLoadedOnce = false
+        Task {
+            await loadPackages()
+        }
+    }
+
+    func checkLatestVersion(for package: Package) async {
+        package.isCheckingUpdate = true
+
+        defer {
+            package.isCheckingUpdate = false
+        }
+
+        do {
+            let latestVersion = try await service.queryLatestVersion(for: package)
+            package.latestVersion = latestVersion
+        } catch {
+            // Silently handle error - user can retry manually
+            package.latestVersion = nil
+        }
+    }
+
+    func updatePackage(_ package: Package) async {
+        package.isUpdating = true
+
+        defer {
+            package.isUpdating = false
+        }
+
+        do {
+            try await service.updatePackage(package)
+            // Reload packages to get updated version
+            hasLoadedOnce = false
+            await loadPackages()
+
+            // Show success alert
+            updateAlert = UpdateAlert(
+                packageName: package.name,
+                success: true,
+                error: nil
+            )
+        } catch let commandError as CommandError {
+            switch commandError {
+            case .notFound:
+                self.error = .notInstalled
+            case .timeout:
+                self.error = .timeout(30)
+            case .failed(let code, let message):
+                self.error = .commandFailed("Exit code \(code): \(message)")
+            case .invalidOutput(let message):
+                self.error = .parseFailed(message)
+            }
+            // Show error alert
+            updateAlert = UpdateAlert(
+                packageName: package.name,
+                success: false,
+                error: commandError.localizedDescription
+            )
+        } catch let packageError as PackageError {
+            self.error = packageError
+            updateAlert = UpdateAlert(
+                packageName: package.name,
+                success: false,
+                error: packageError.localizedDescription
+            )
+        } catch {
+            self.error = .unknown(error)
+            updateAlert = UpdateAlert(
+                packageName: package.name,
+                success: false,
+                error: error.localizedDescription
+            )
         }
     }
 

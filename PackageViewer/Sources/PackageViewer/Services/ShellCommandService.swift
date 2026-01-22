@@ -26,8 +26,10 @@ class ShellCommandService {
         var didTimeout = false
         let timeoutTask = Task {
             try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
-            process.terminate()
-            didTimeout = true
+            if !Task.isCancelled {
+                process.terminate()
+                didTimeout = true
+            }
         }
 
         process.waitUntilExit()

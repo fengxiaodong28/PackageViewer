@@ -55,4 +55,13 @@ class NpmPackageService: PackageRepository {
             return false
         }
     }
+
+    func queryLatestVersion(for package: Package) async throws -> String {
+        let output = try await shellService.execute(command: "npm", arguments: ["view", package.name, "version"])
+        return output.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func updatePackage(_ package: Package) async throws {
+        _ = try await shellService.execute(command: "npm", arguments: ["install", "-g", "\(package.name)@latest"])
+    }
 }

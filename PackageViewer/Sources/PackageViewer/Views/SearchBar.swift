@@ -8,7 +8,7 @@ struct SearchBar: View {
     @State private var searchTask: Task<Void, Never>?
 
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.secondary)
 
@@ -20,12 +20,23 @@ struct SearchBar: View {
                     searchTask = Task {
                         try? await Task.sleep(nanoseconds: 300_000_000)
                         if !Task.isCancelled {
-                            await MainActor.run {
-                                viewModel.search(newValue)
-                            }
+                            viewModel.search(newValue)
                         }
                     }
                 }
+
+            if !viewModel.searchQuery.isEmpty {
+                Button {
+                    searchText = ""
+                    viewModel.clearSearch()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+
+            Spacer()
 
             // Show package count
             if packageCount > 0 {
@@ -38,16 +49,16 @@ struct SearchBar: View {
                     .cornerRadius(4)
             }
 
-            if !viewModel.searchQuery.isEmpty {
-                Button {
-                    searchText = ""
-                    viewModel.clearSearch()
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
+            // Refresh button
+            Button(action: {
+                viewModel.refresh()
+            }) {
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
             }
+            .buttonStyle(.plain)
+            .help("Refresh package list")
         }
         .padding(8)
         .background(Color(NSColor.controlBackgroundColor))

@@ -60,4 +60,31 @@ class PipPackageService: PackageRepository {
             return false
         }
     }
+
+    func queryLatestVersion(for package: Package) async throws -> String {
+        // Use pip index versions command - simple and reliable
+        let output = try await shellService.execute(
+            command: "pip3",
+            arguments: ["index", "versions", package.name],
+            timeout: 15.0
+        )
+
+        // Parse the output to find LATEST version
+        let lines = output.components(separatedBy: .newlines)
+        for line in lines {
+            if line.hasPrefix("  LATEST:") {
+                let version = line.replacingOccurrences(of: "  LATEST:", with: "")
+                    .trimmingCharacters(in: .whitespaces)
+                if !version.isEmpty {
+                    return version
+                }
+            }
+        }
+
+        throw PackageError.parseFailed("Could not find latest version in pip index output")
+    }
+
+    func updatePackage(_ package: Package) async throws {
+        _ = try await shellService.execute(command: "pip3", arguments: ["install", "--upgrade", package.name])
+    }
 }

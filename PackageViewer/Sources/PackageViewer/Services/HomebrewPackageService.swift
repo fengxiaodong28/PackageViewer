@@ -52,4 +52,23 @@ class HomebrewPackageService: PackageRepository {
             return false
         }
     }
+
+    func queryLatestVersion(for package: Package) async throws -> String {
+        let output = try await shellService.execute(command: "brew", arguments: ["info", "--json=v2", package.name])
+        guard let data = output.data(using: .utf8) else {
+            throw PackageError.parseFailed("Could not decode brew info output")
+        }
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let formulae = json["formulae"] as? [[String: Any]],
+              let formula = formulae.first,
+              let versions = formula["versions"] as? [String: Any],
+              let stable = versions["stable"] as? String else {
+            throw PackageError.parseFailed("Could not parse version from brew info output")
+        }
+        return stable
+    }
+
+    func updatePackage(_ package: Package) async throws {
+        _ = try await shellService.execute(command: "brew", arguments: ["upgrade", package.name])
+    }
 }

@@ -3,6 +3,8 @@ import Foundation
 protocol PackageRepository {
     func fetchPackages() async throws -> [Package]
     func isAvailable() async -> Bool
+    func queryLatestVersion(for package: Package) async throws -> String
+    func updatePackage(_ package: Package) async throws
 }
 
 enum PackageError: LocalizedError {
