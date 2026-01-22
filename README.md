@@ -2,8 +2,6 @@
 
 一个简洁优雅的 macOS 应用，用于查看和管理本地安装的软件包。支持 npm、Homebrew 和 pip 三大主流包管理器。
 
-![PackageViewer](docs/images/screenshot.png)
-
 ## 功能特性
 
 - **多包管理器支持**：统一管理 npm、Homebrew、pip 的本地包
@@ -163,19 +161,6 @@ PackageViewer/
 - ViewModels 使用 `@MainActor` 确保 UI 线程安全
 - 完善的错误处理，使用特定的错误类型
 
-## 截图
-
-| 主界面 | 搜索功能 | 版本检查 |
-|--------|----------|----------|
-| ![Main](docs/images/main.png) | ![Search](docs/images/search.png) | ![Check](docs/images/check.png) |
-
-## 路线图
-
-- [ ] 支持批量检查更新
-- [ ] 显示包的详细信息（描述、主页等）
-- [ ] 支持自定义主题
-- [ ] 支持导出包列表
-
 ## 许可证
 
 MIT License
@@ -200,7 +185,3 @@ MIT License
 
 - 感谢 SwiftUI 社区的优秀示例
 - 感谢所有贡献者
-
----
-
-**Made with ❤️ and SwiftUI**
