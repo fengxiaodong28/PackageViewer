@@ -69,6 +69,19 @@ class HomebrewPackageService: PackageRepository {
     }
 
     func updatePackage(_ package: Package) async throws {
-        _ = try await shellService.execute(command: "brew", arguments: ["upgrade", package.name])
+        // First try upgrading as a formula
+        do {
+            _ = try await shellService.execute(command: "brew", arguments: ["upgrade", package.name])
+        } catch {
+            // If formula upgrade fails, try as cask
+            let output = try await shellService.execute(command: "brew", arguments: ["list", "--cask"])
+            let casks = output.components(separatedBy: .newlines).filter { !$0.isEmpty }
+
+            if casks.contains(package.name) {
+                _ = try await shellService.execute(command: "brew", arguments: ["upgrade", "--cask", package.name])
+            } else {
+                throw error
+            }
+        }
     }
 }
