@@ -69,16 +69,17 @@ class HomebrewPackageService: PackageRepository {
     }
 
     func updatePackage(_ package: Package) async throws {
+        // Use 180 seconds timeout for brew upgrade which may need to download and compile packages
         // First try upgrading as a formula
         do {
-            _ = try await shellService.execute(command: "brew", arguments: ["upgrade", package.name])
+            _ = try await shellService.execute(command: "brew", arguments: ["upgrade", package.name], timeout: 180.0)
         } catch {
             // If formula upgrade fails, try as cask
             let output = try await shellService.execute(command: "brew", arguments: ["list", "--cask"])
             let casks = output.components(separatedBy: .newlines).filter { !$0.isEmpty }
 
             if casks.contains(package.name) {
-                _ = try await shellService.execute(command: "brew", arguments: ["upgrade", "--cask", package.name])
+                _ = try await shellService.execute(command: "brew", arguments: ["upgrade", "--cask", package.name], timeout: 180.0)
             } else {
                 throw error
             }
