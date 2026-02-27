@@ -62,7 +62,7 @@ class NpmPackageService: PackageRepository {
     }
 
     func updatePackage(_ package: Package) async throws {
-        // Use 180 seconds timeout for npm install which may need to download and compile packages
-        _ = try await shellService.execute(command: "npm", arguments: ["install", "-g", "\(package.name)@latest"], timeout: 180.0)
+        // Use 600 seconds (10 minutes) timeout for npm install which may need to download and compile packages
+        _ = try await shellService.execute(command: "npm", arguments: ["install", "-g", "\(package.name)@latest"], timeout: 600.0)
     }
 }

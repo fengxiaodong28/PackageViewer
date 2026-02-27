@@ -85,7 +85,7 @@ class PipPackageService: PackageRepository {
     }
 
     func updatePackage(_ package: Package) async throws {
-        // Use 180 seconds timeout for pip install which may need to download and compile packages
-        _ = try await shellService.execute(command: "pip3", arguments: ["install", "--upgrade", package.name], timeout: 180.0)
+        // Use 600 seconds (10 minutes) timeout for pip install which may need to download and compile packages
+        _ = try await shellService.execute(command: "pip3", arguments: ["install", "--upgrade", package.name], timeout: 600.0)
     }
 }
