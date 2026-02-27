@@ -70,7 +70,7 @@ class PackageListViewModel: ObservableObject {
             }.value
 
             packages = sortedPackages
-            filteredPackages = sortedPackages
+            filterPackages()  // Apply current search filter after reloading
             hasLoadedOnce = true
         } catch let commandError as CommandError {
             switch commandError {
